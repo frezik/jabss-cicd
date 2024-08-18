@@ -2,7 +2,7 @@ defmodule JabssTest do
   use ExUnit.Case
   doctest Jabss
 
-  test "greets the world" do
-    assert Jabss.hello() == :world
+  test "Load config file" do
+    assert Jabss.conf_file( "test_files/basic_conf.yaml" )
   end
 end

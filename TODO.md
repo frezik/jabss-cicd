@@ -1,5 +1,6 @@
 Minimum Viable
 ==============
+* Conf file
 * Log to a streaming, machine-readable and human-readable format
 ** It gonna be YAML. The last entry can be an array, and you just append to it
 * A way to securely manage auth
