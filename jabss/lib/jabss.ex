@@ -35,6 +35,12 @@ defmodule Jabss do
     end
   end
 
+  @doc """
+  """
+  def exec_tmpl( tmpl_args, tmpl ) do
+    Mustache.render( tmpl, tmpl_args )
+  end
+
 
   defp default_conf_path() do
     Path.join([

@@ -1,0 +1,4 @@
+---
+auth:
+  slack:
+    token: foobar

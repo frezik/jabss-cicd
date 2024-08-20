@@ -40,7 +40,8 @@ defmodule Jabss.MixProject do
   defp deps do
     [
       {:yaml_elixir, "~> 2.9.0"},
-      {:ymlr, "~> 5.1.3"}
+      {:ymlr, "~> 5.1.3"},
+      {:mustache, "~> 0.5.1"}
     ]
   end
 end

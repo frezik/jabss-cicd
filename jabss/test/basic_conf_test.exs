@@ -1,4 +1,4 @@
-defmodule JabssTest do
+defmodule BasicConfTest do
   use ExUnit.Case
   doctest Jabss
 
