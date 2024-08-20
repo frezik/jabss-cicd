@@ -9,7 +9,8 @@ defmodule Jabss.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       package: package(),
-      deps: deps()
+      deps: deps(),
+      escript: escript()
     ]
   end
 
@@ -34,6 +35,10 @@ defmodule Jabss.MixProject do
     [
       extra_applications: [:logger]
     ]
+  end
+
+  defp escript do
+    [main_module: Jabss.CLI]
   end
 
   # Run "mix help deps" to learn about dependencies.
