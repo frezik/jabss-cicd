@@ -4,6 +4,7 @@ defmodule Jabss do
   """
 
   @conf_file_name "jabs.yaml"
+  @env_run_id "JABSS_RUN_ID"
 
   @doc """
   Check and fetch the configuration file. Parses it as YAML and returns 
@@ -41,6 +42,61 @@ defmodule Jabss do
     Mustache.render( tmpl, tmpl_args )
   end
 
+  @doc """
+  Run the given script.
+  """
+  def run( run_script_path ) do
+    run_id = generate_run_id()
+    dirpath = Path.absname( run_script_path )
+      |> Path.dirname()
+
+    case parse_script( run_script_path ) do
+      { :ok, steps } -> exec_steps( steps, run_id, dirpath )
+      { :error, err } -> IO.puts( "Error parsing script: #{err}" )
+    end
+  end
+
+
+  defp generate_run_id() do
+    UUID.uuid4()
+  end
+
+  defp parse_script( path )
+    when is_binary( path )
+  do
+    case File.read( path ) do
+      { :ok, json_text } -> parse_json_steps( json_text )
+      { :error, err } -> { :error, err }
+    end
+  end
+
+  defp exec_steps( steps, run_id, dirpath ) do
+    set_run_environment( run_id )
+    result_steps = Enum.take_while( steps,
+      fn step -> exec_step( step, dirpath ) end )
+    length( result_steps ) == length( steps )
+  end
+
+  defp exec_step( step, dirpath ) do
+    _step_name = step[ "name" ]
+    step_script = step[ "script" ]
+
+    full_path = Path.join([
+      dirpath,
+      step_script,
+    ])
+
+    { _result, exit_status } = System.cmd( full_path, [] )
+    exit_status == 0
+  end
+
+  defp set_run_environment( run_id ) do
+    System.put_env( @env_run_id, run_id )
+  end
+
+  defp parse_json_steps( json_text ) do
+    JSON.decode( json_text )
+  end
 
   defp default_conf_path() do
     Path.join([

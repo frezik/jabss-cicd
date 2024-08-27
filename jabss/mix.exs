@@ -46,7 +46,9 @@ defmodule Jabss.MixProject do
     [
       {:yaml_elixir, "~> 2.9.0"},
       {:ymlr, "~> 5.1.3"},
-      {:mustache, "~> 0.5.1"}
+      {:mustache, "~> 0.5.1"},
+      {:uuid, "~> 1.1.8"},
+      {:json, "~> 1.4.1"}
     ]
   end
 end
