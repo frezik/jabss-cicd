@@ -37,6 +37,13 @@ defmodule Jabss do
   end
 
   @doc """
+  Renders a template based on the args.
+
+  ### Examples
+
+  ```
+  Jabss.exec_tmpl( %{ auth: "foobar" }, "Auth is {{auth}}" )
+  ```
   """
   def exec_tmpl( tmpl_args, tmpl ) do
     Mustache.render( tmpl, tmpl_args )
@@ -54,6 +61,56 @@ defmodule Jabss do
       { :ok, steps } -> exec_steps( steps, run_id, dirpath )
       { :error, err } -> IO.puts( "Error parsing script: #{err}" )
     end
+  end
+
+  @doc """
+  Opens a new log file. Uses the config from `conf_file/1` by default, and 
+  fetches the log subdir from the config key `logs.dir`.
+  """
+  def open_new_log( fetch_conf_callback ) do
+    conf = fetch_conf_callback.()
+    base_path = conf[ "logs" ][ "dir" ]
+
+    run_id = get_run_id_from_environment()
+    full_path = Path.join([
+      base_path,
+      run_id <> ".log"
+    ])
+
+    fh = File.open!( full_path, :write )
+    log( fh, "Begin" )
+    { :ok, fh, full_path, run_id }
+  end
+
+  @doc """
+  Writes a log entry to `file`. It can be a full file path, a PID (from 
+  `File.open()`), or an atom for `:stdio`.
+
+  Note that any newlines in the log message will be replaced with `\n`, and 
+  double quotes will be replaced with `\"`.
+  """
+  def log( file, msg )
+    when is_binary( file )
+  do
+    fh = File.open!( file, :append )
+    log( fh, msg )
+    File.close( fh )
+
+    :ok
+  end
+
+  def log( file, msg )
+    when is_pid( file ) or is_atom( file )
+  do
+    now_iso8601 = DateTime.now!( "Etc/UTC" )
+      |> DateTime.to_iso8601()
+
+    msg = Regex.replace( ~r/"/, msg, "\\\"", multiline: true )
+    msg = Regex.replace( ~r/\n/, msg, "\\n", multiline: true )
+
+    IO.write( file,
+      "{ \"dt\": \"#{now_iso8601}\", \"msg\": \"#{msg}\" }" )
+    :ok
   end
 
 
@@ -94,6 +151,10 @@ defmodule Jabss do
     System.put_env( @env_run_id, run_id )
   end
 
+  defp get_run_id_from_environment() do
+    System.get_env( @env_run_id )
+  end
+
   defp parse_json_steps( json_text ) do
     JSON.decode( json_text )
   end
@@ -124,10 +185,17 @@ defmodule Jabss do
   defp fresh_conf_file( path ) do
     conf = %{
       auth: %{},
+      logs: %{
+        dir: default_log_dir(),
+      },
     }
     yaml_conf = Ymlr.document!( conf, sort_maps: true )
 
     File.write!( path, yaml_conf )
     parse_conf_file( path )
+  end
+
+  defp default_log_dir() do
+    :filename.basedir( :user_log, "jabss" )
   end
 end
