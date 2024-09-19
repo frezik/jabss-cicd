@@ -3,7 +3,7 @@ defmodule Jabss do
   Just A Bunch of Shell Scripts CI/CD
   """
 
-  @conf_file_name "jabs.yaml"
+  @conf_file_name "jabss.yaml"
   @env_run_id "JABSS_RUN_ID"
 
   @doc """
@@ -67,17 +67,23 @@ defmodule Jabss do
   Opens a new log file. Uses the config from `conf_file/1` by default, and 
   fetches the log subdir from the config key `logs.dir`.
   """
-  def open_new_log( fetch_conf_callback ) do
+  def open_new_log() do
+    open_new_log( &conf_file/0 )
+  end
+
+  def open_new_log( fetch_conf_callback )
+    when is_function( fetch_conf_callback, 0 ) do
     conf = fetch_conf_callback.()
     base_path = conf[ "logs" ][ "dir" ]
 
     run_id = get_run_id_from_environment()
     full_path = Path.join([
       base_path,
-      run_id <> ".log"
+      run_id,
+      "log.json_list"
     ])
 
-    fh = File.open!( full_path, :write )
+    fh = File.open!( full_path, [ :write ] )
     log( fh, "Begin" )
     { :ok, fh, full_path, run_id }
   end
@@ -109,7 +115,7 @@ defmodule Jabss do
     msg = Regex.replace( ~r/\n/, msg, "\\n", multiline: true )
 
     IO.write( file,
-      "{ \"dt\": \"#{now_iso8601}\", \"msg\": \"#{msg}\" }" )
+      "{ \"dt\": \"#{now_iso8601}\", \"msg\": \"#{msg}\" }\n" )
     :ok
   end
 

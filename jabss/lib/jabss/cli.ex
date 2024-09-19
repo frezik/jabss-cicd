@@ -8,6 +8,7 @@ defmodule Jabss.CLI do
 
     case subcommand do
       "tmpl" -> tmpl( other_args )
+      "log" -> log( other_args )
       "help" -> help( other_args )
       _ -> help( other_args )
     end
@@ -21,6 +22,7 @@ defmodule Jabss.CLI do
       Commands:
         help - This help screen
         tmpl - Create a template from the configuration
+        log - Log a message
       """
     )
   end
@@ -31,5 +33,14 @@ defmodule Jabss.CLI do
     Jabss.conf_file()
     |> Jabss.exec_tmpl( tmpl )
     |> IO.puts()
+  end
+
+  def log( args ) do
+    msg = Enum.join( args, " " )
+
+    case Jabss.open_new_log() do
+      { :ok, fh, _full_path, _run_id } -> Jabss.log( fh, msg )
+      _ -> IO.puts( "Error: could not open log file" )
+    end
   end
 end
