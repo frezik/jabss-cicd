@@ -21,12 +21,18 @@ defmodule Jabss.CLI do
 
       Commands:
         help - This help screen
+        run - Run a script
         tmpl - Create a template from the configuration
         log - Log a message
       """
     )
   end
 
+
+  def run ( args ) do
+    script = hd( args )
+    Jabss.run( script )
+  end
 
   def tmpl( args ) do
     tmpl = hd( args )
